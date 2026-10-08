@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inscrire mon enfant – Le Petit Cahier</title>
+  <meta name="description" content="Inscrivez votre enfant en une page : renseignez ses informations, celles du responsable légal et les autorisations. Réponse par email.">
+  <meta name="theme-color" content="#1D2B8C">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231D2B8C'/%3E%3Cpath d='M18 14v36M18 24h30M18 36h30M18 48h30' stroke='%23fbfcff' stroke-width='3' fill='none'/%3E%3Cpath d='M18 14v36' stroke='%23E4505F' stroke-width='4'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playwrite+FR+Moderne&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Une page de cahier à grands carreaux (Seyès) : tout s'aligne sur une unité de 32 px. */
+    :root {
+      --u: 32px;
+      --desk: #E6EBFA;
+      --paper: #FBFCFF;
+      --grid: #D3DBF5;
+      --grid-faint: #E8EDFA;
+      --ink: #1D2B8C;
+      --ink-soft: #4A5599;
+      --field-line: #6B78C9;
+      --margin: #E4505F;
+      --highlight: #FFE55C;
+      --error: #B3261E;
+      --script: "Playwrite FR Moderne", "Segoe Print", "Bradley Hand", cursive;
+      --text: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--desk);
+      color: var(--ink);
+      font: 400 18px/32px var(--text);
+    }
+
+    .sheet {
+      position: relative;
+      max-width: 900px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: var(--u) 20px calc(var(--u) * 3) 56px;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(0deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(0deg, var(--grid-faint) 1px, transparent 1px);
+      background-size: var(--u) var(--u), var(--u) var(--u), var(--u) 8px;
+      box-shadow: 0 0 0 1px rgba(29, 43, 140, .08), 0 24px 60px -30px rgba(29, 43, 140, .35);
+    }
+
+    /* La marge rouge */
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 32px;
+      width: 2px;
+      background: var(--margin);
+    }
+
+    @media (min-width: 720px) {
+      .sheet { padding: var(--u) 64px calc(var(--u) * 3) 128px; }
+      .sheet::before { left: 96px; }
+    }
+
+    a { color: inherit; }
+
+    /* En-tête : une ligne, comme la date en haut d'une page */
+    .top {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0 24px;
+      height: var(--u);
+    }
+    .brand {
+      font: 400 17px/32px var(--script);
+      margin: 0;
+    }
+    .term {
+      margin: 0;
+      font-size: 16px;
+      color: var(--ink-soft);
+    }
+    @media (max-width: 479px) { .term { display: none; } }
+
+    /* Titre souligné à la règle, écrit une seule fois au chargement */
+    h1 {
+      width: fit-content;
+      max-width: 100%;
+      margin: calc(var(--u) * 2) 0 var(--u);
+      font: 400 clamp(32px, 7.2vw, 54px)/64px var(--script);
+      background: linear-gradient(var(--margin), var(--margin)) 0 100% / 100% 2px no-repeat;
+    }
+    h1 span { display: block; }
+
+    .lead {
+      max-width: 34em;
+      margin: 0 0 var(--u);
+    }
+    .hint {
+      margin: 0 0 var(--u);
+      font-size: 16px;
+      color: var(--ink-soft);
+    }
+
+    h2 {
+      margin: 0 0 var(--u);
+      font: 400 clamp(20px, 4vw, 24px)/32px var(--script);
+    }
+
+    section { margin: 0 0 var(--u); }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      column-gap: var(--u);
+    }
+    @media (min-width: 720px) {
+      .fields { grid-template-columns: 1fr 1fr; }
+      .wide { grid-column: 1 / -1; }
+    }
+
+    .field { margin: 0 0 var(--u); min-width: 0; }
+
+    label, .label {
+      display: block;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 32px;
+    }
+    .opt { font-weight: 400; color: var(--ink-soft); }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select,
+    textarea {
+      display: block;
+      width: 100%;
+      height: var(--u);
+      margin: 0;
+      padding: 0 4px;
+      border: 0;
+      border-radius: 0;
+      background-color: transparent;
+      box-shadow: inset 0 -2px 0 var(--field-line);
+      color: var(--ink);
+      font: 400 18px/32px var(--text);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    textarea {
+      height: calc(var(--u) * 3);
+      resize: vertical;
+      min-height: calc(var(--u) * 3);
+      /* le dernier trait reste sur une ligne du cahier */
+      box-shadow: inset 0 -2px 0 var(--field-line);
+    }
+    select {
+      padding-right: 32px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%231D2B8C' stroke-width='2'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+    }
+    ::placeholder { color: #5F69B0; opacity: 1; }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      background-color: rgba(255, 229, 92, .55);
+      box-shadow: inset 0 -2px 0 var(--ink);
+    }
+    input:focus-visible, select:focus-visible, textarea:focus-visible,
+    button:focus-visible, .choice input:focus-visible, .consent input:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+      box-shadow: inset 0 -2px 0 var(--error);
+    }
+
+    .choices { display: flex; flex-wrap: wrap; gap: 0 var(--u); }
+    .choice {
+      display: flex;
+      white-space: nowrap;
+      align-items: center;
+      gap: 10px;
+      font-weight: 400;
+      font-size: 18px;
+    }
+    .choice input, .consent input {
+      width: 22px;
+      height: 22px;
+      margin: 0;
+      accent-color: var(--ink);
+    }
+
+    .consent {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      align-items: start;
+      margin: 0 0 var(--u);
+      font-size: 16px;
+      font-weight: 400;
+    }
+    .consent input { margin-top: 5px; }
+
+    .send {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(var(--u) * 2);
+      padding: 0 var(--u);
+      border: 0;
+      border-radius: 4px;
+      background: var(--ink);
+      color: #fff;
+      font: 700 18px/1 var(--text);
+      cursor: pointer;
+      transition: background-color .15s;
+    }
+    .send:hover { background: #121E6B; }
+    .send:disabled { background: var(--ink-soft); cursor: progress; }
+
+    .status {
+      min-height: var(--u);
+      margin: var(--u) 0 0;
+      font-size: 16px;
+      color: var(--error);
+    }
+
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+    /* Confirmation : même écriture que le titre */
+    .done[hidden] { display: none; }
+    .done h2 {
+      font-size: clamp(28px, 6vw, 44px);
+      line-height: 64px;
+      margin-bottom: var(--u);
+    }
+    .done mark {
+      background: linear-gradient(transparent 20%, var(--highlight) 20% 88%, transparent 88%);
+      color: inherit;
+      padding: 0 4px;
+    }
+    .done .write { animation: write .9s ease-out both; }
+
+    footer { max-width: 34em; font-size: 16px; color: var(--ink-soft); }
+    footer p { margin: 0; }
+
+    /* Un seul moment animé : le titre s'écrit, puis la règle se trace. */
+    @keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes rule { from { background-size: 0 2px; } to { background-size: 100% 2px; } }
+    @media (prefers-reduced-motion: no-preference) {
+      h1 span { animation: write 1.1s .15s ease-out both; }
+      h1 { animation: rule .7s 1.1s ease-out both; background-size: 0 2px; animation-fill-mode: forwards; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .done .write { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="top">
+      <p class="brand">Le Petit Cahier</p>
+      <p class="term">Rentrée 2026-2027</p>
+    </header>
+
+    <main>
+      <h1><span>Inscrire mon enfant</span></h1>
+      <p class="lead">Une seule page à remplir. Nous lisons chaque inscription et vous répondons par email.</p>
+      <p class="hint">Tous les champs sont obligatoires, sauf ceux marqués « facultatif ».</p>
+
+      <form id="form" novalidate>
+        <section aria-labelledby="h-enfant">
+          <h2 id="h-enfant">L’enfant</h2>
+          <div class="fields">
+            <div class="field">
+              <label for="prenom_enfant">Prénom</label>
+              <input id="prenom_enfant" name="prenom_enfant" type="text" autocomplete="off" required>
+            </div>
+            <div class="field">
+              <label for="nom_enfant">Nom</label>
+              <input id="nom_enfant" name="nom_enfant" type="text" autocomplete="off" required>
+            </div>
+            <div class="field">
+              <label for="naissance">Date de naissance</label>
+              <input id="naissance" name="naissance" type="date" autocomplete="off" required>
+            </div>
+            <div class="field">
+              <label for="niveau">Classe à la rentrée</label>
+              <select id="niveau" name="niveau" required>
+                <option value="">Choisir une classe</option>
+                <option>Petite section</option>
+                <option>Moyenne section</option>
+                <option>Grande section</option>
+                <option>CP</option>
+                <option>CE1</option>
+                <option>CE2</option>
+                <option>CM1</option>
+                <option>CM2</option>
+                <option>6e ou plus</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-parent">
+          <h2 id="h-parent">Le responsable légal</h2>
+          <div class="fields">
+            <div class="field">
+              <label for="nom_responsable">Nom et prénom</label>
+              <input id="nom_responsable" name="nom_responsable" type="text" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="lien">Lien avec l’enfant</label>
+              <select id="lien" name="lien" required>
+                <option value="">Choisir un lien</option>
+                <option>Mère</option>
+                <option>Père</option>
+                <option>Tuteur ou tutrice</option>
+                <option>Autre</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="email">Adresse email</label>
+              <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+            </div>
+            <div class="field">
+              <label for="telephone">Téléphone</label>
+              <input id="telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" required>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-sante">
+          <h2 id="h-sante">Santé et autorisations</h2>
+          <div class="fields">
+            <div class="field wide">
+              <label for="sante">Allergies, santé, besoins particuliers <span class="opt">facultatif</span></label>
+              <textarea id="sante" name="sante" rows="3"></textarea>
+            </div>
+            <div class="field wide">
+              <label for="autre_personne">Autre personne autorisée à venir chercher l’enfant <span class="opt">facultatif</span></label>
+              <input id="autre_personne" name="autre_personne" type="text" autocomplete="off">
+            </div>
+            <div class="field wide">
+              <div class="label" id="l-photos">Photos de mon enfant pendant les activités</div>
+              <div class="choices" role="radiogroup" aria-labelledby="l-photos">
+                <label class="choice"><input type="radio" name="photos" value="oui" required> J’autorise</label>
+                <label class="choice"><input type="radio" name="photos" value="non"> Je n’autorise pas</label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="hp" aria-hidden="true">
+          <label>Ne pas remplir ce champ <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+
+        <label class="consent">
+          <input type="checkbox" id="consent" name="consentement" value="oui" required>
+          <span>J’accepte que ces informations, y compris celles de santé, servent uniquement à gérer l’inscription de mon enfant.</span>
+        </label>
+
+        <button class="send" type="submit" id="send">Envoyer l’inscription</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+        <noscript><p class="status">Activez JavaScript pour envoyer ce formulaire.</p></noscript>
+      </form>
+
+      <section class="done" id="done" hidden aria-labelledby="h-done">
+        <h2 id="h-done" tabindex="-1" class="write">Inscription envoyée</h2>
+        <p class="lead">Nous avons bien reçu l’inscription de <mark id="done-name"></mark>. Nous vous répondons par email, à l’adresse indiquée.</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>Ces informations ne servent qu’à gérer cette inscription. Pour les corriger ou les supprimer, il suffit de nous le demander par email.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Adresse de réception du formulaire (par exemple https://formspree.io/f/xxxxxxxx).
+    // Tant qu'elle est vide, le formulaire affiche un message au lieu d'envoyer.
+    const FORM_ENDPOINT = "";
+
+    const form = document.getElementById("form");
+    const sendBtn = document.getElementById("send");
+    const statusEl = document.getElementById("status");
+    const done = document.getElementById("done");
+
+    // La date de naissance doit tomber entre il y a 18 ans et aujourd'hui.
+    (function limitBirthDate() {
+      const today = new Date();
+      const iso = (d) => d.toISOString().slice(0, 10);
+      const min = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      const input = document.getElementById("naissance");
+      input.max = iso(today);
+      input.min = iso(min);
+    })();
+
+    const messages = {
+      valueMissing: "Complétez ce champ.",
+      typeMismatch: "Vérifiez le format de ce champ.",
+      rangeUnderflow: "Cette date est trop ancienne.",
+      rangeOverflow: "Cette date est dans le futur.",
+    };
+
+    function firstInvalid() {
+      for (const el of form.querySelectorAll("input, select, textarea")) {
+        if (!el.checkValidity()) return el;
+      }
+      return null;
+    }
+
+    form.addEventListener("input", (e) => {
+      if (e.target.getAttribute("aria-invalid") === "true" && e.target.checkValidity()) {
+        e.target.removeAttribute("aria-invalid");
+        statusEl.textContent = "";
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "";
+
+      const bad = firstInvalid();
+      if (bad) {
+        bad.setAttribute("aria-invalid", "true");
+        const label = bad.id === "consent"
+          ? "Cochez la case pour accepter."
+          : bad.name === "photos"
+            ? "Choisissez une réponse pour les photos."
+            : (messages[Object.keys(messages).find((k) => bad.validity[k])] || "Vérifiez ce champ.");
+        statusEl.textContent = label;
+        bad.focus();
+        return;
+      }
+
+      const data = new FormData(form);
+
+      // Champ piège pour les robots : on fait comme si tout s'était bien passé.
+      if (data.get("website")) { showDone(data); return; }
+
+      if (!FORM_ENDPOINT) {
+        statusEl.textContent = "Le formulaire n’est pas encore relié à une adresse de réception. Rien n’a été envoyé.";
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Envoi…";
+      try {
+        const res = await fetch(FORM_ENDPOINT, {
+          method: "POST",
+          body: data,
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        showDone(data);
+      } catch (err) {
+        statusEl.textContent = "L’envoi a échoué. Vérifiez votre connexion puis réessayez.";
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Envoyer l’inscription";
+      }
+    });
+
+    function showDone(data) {
+      document.getElementById("done-name").textContent = data.get("prenom_enfant");
+      form.hidden = true;
+      done.hidden = false;
+      const h = document.getElementById("h-done");
+      h.focus({ preventScroll: true });
+      done.scrollIntoView({ block: "start" });
+    }
+  </script>
+</body>
+</html>
